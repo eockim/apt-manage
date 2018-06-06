@@ -42,13 +42,13 @@ public class AptManageApplication {
     public Mono<HashMap> getAptList(@PathVariable String loadCode){
 
         //System.out.println(apiProperty.getApikey());
-        log.info("getApiKey {}", apiProperty.getApiKey());
-        Optional.<String>ofNullable(apiProperty.getApiKey())
+        log.info("getApiKey {}", apiProperty.getAptListKey());
+        Optional.<String>ofNullable(apiProperty.getAptListKey())
                                 .filter(x -> !x.equals(""))
                                 .orElseThrow(()-> new NullPointerException());
 
         Mono<HashMap> map = webClient.get()
-                .uri(URI.create(APT_LIST_URI + "?loadCode=" + loadCode + "&ServiceKey=" + apiProperty.getApiKey()))
+                .uri(URI.create(APT_LIST_URI + "?loadCode=" + loadCode + "&ServiceKey=" + apiProperty.getAptListKey()))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .flatMap(x -> x.bodyToMono(HashMap.class))

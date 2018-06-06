@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 
 @Configuration
 @EnableConfigurationProperties
-@ConfigurationProperties(prefix="public.apt-list")
+@ConfigurationProperties(prefix="public.api")
 @Data
 public class ApiProperty {
 
-    String apiKey;
+    String aptListKey;
 }

@@ -1,5 +1,7 @@
 package com.hj.aptmanage;
 
+import com.hj.aptmanage.entity.LaborManage;
+import com.hj.aptmanage.service.AptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +17,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -25,12 +30,15 @@ import java.util.Optional;
 public class AptManageApplication {
 
     private final String APT_LIST_URI = "http://apis.data.go.kr/1611000/AptListService/getRoadnameAptList";
-
+    private final String PUBLIC_COST_LABOR_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpLaborCostInfo";
 //    @Value("${public.aptList.apiKey}")
 //    private String APT_LIST_KEY;
 
     @Autowired
     ApiProperty apiProperty;
+
+    @Autowired
+    AptService aptService;
 
     WebClient webClient = WebClient.create();
 
@@ -42,7 +50,7 @@ public class AptManageApplication {
     public Mono<HashMap> getAptList(@PathVariable String loadCode){
 
         //System.out.println(apiProperty.getApikey());
-        log.info("getApiKey {}", apiProperty.getAptListKey());
+        log.info("getAptListKey {}", apiProperty.getAptListKey());
         Optional.<String>ofNullable(apiProperty.getAptListKey())
                                 .filter(x -> !x.equals(""))
                                 .orElseThrow(()-> new NullPointerException());
@@ -56,5 +64,46 @@ public class AptManageApplication {
                 //.flatMap(x -> webClient.get().uri())
 
         return map;
+    }
+
+    @GetMapping("/apt/cost/labor/{aptCode}")
+    public Mono<LaborManage> getAptPublicCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_LABOR_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getLabor(x)));
+    }
+
+    @GetMapping("/apt/test/{aptCode}")
+    public Mono<Map> getAptPublicCostTest(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_LABOR_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(c -> c.bodyToMono(HashMap.class))
+                ;
     }
 }

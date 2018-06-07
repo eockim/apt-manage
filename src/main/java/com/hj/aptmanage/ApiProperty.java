@@ -12,5 +12,7 @@ import org.springframework.stereotype.Component;
 @Data
 public class ApiProperty {
 
-    String aptListKey;
+    private String aptListKey;
+    private String publicCostKey;
+
 }

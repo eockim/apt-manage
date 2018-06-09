@@ -1,5 +1,6 @@
 package com.hj.aptmanage;
 
+import com.hj.aptmanage.entity.Cloth;
 import com.hj.aptmanage.entity.Cmnuse;
 import com.hj.aptmanage.entity.LaborManage;
 import com.hj.aptmanage.service.AptService;
@@ -34,6 +35,7 @@ public class AptManageApplication {
     private final String PUBLIC_COST_LABOR_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpLaborCostInfo";
     private final String PUBLIC_COST_CMNUSE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpOfcrkCostInfo";
     private final String PUBLIC_COST_TAX_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpTaxdueInfo";
+    private final String PUBLIC_COST_CLOTH_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpClothingCostInfo";
 //    @Value("${public.aptList.apiKey}")
 //    private String APT_LIST_KEY;
 
@@ -67,6 +69,27 @@ public class AptManageApplication {
                 //.flatMap(x -> webClient.get().uri())
 
         return map;
+    }
+
+    @GetMapping("/apt/cost/cloth/{aptCode}")
+    public Mono<Cloth> geClothCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_TAX_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getCloth(x)));
+
     }
 
     @GetMapping("/apt/cost/tax/{aptCode}")

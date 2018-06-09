@@ -1,6 +1,7 @@
 package com.hj.aptmanage.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hj.aptmanage.entity.Cloth;
 import com.hj.aptmanage.entity.Cmnuse;
 import com.hj.aptmanage.entity.LaborManage;
 import com.hj.aptmanage.entity.Tax;
@@ -70,6 +71,35 @@ public class AptService {
                 });
 
         return CompletableFuture.completedFuture(laborManage.orElse(new LaborManage()));
+    }
+
+    @Async
+    public CompletableFuture<Cloth> getCloth(ClientResponse clientResponse){
+
+        Optional<Cloth> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x ->  {
+
+                    Cloth cloth = new Cloth();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(cloth, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return cloth;
+                });
+
+        return CompletableFuture.completedFuture(optional.orElse(new Cloth()));
     }
 
     @Async

@@ -1,6 +1,7 @@
 package com.hj.aptmanage.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hj.aptmanage.entity.Cmnuse;
 import com.hj.aptmanage.entity.LaborManage;
 import com.hj.aptmanage.exception.FunctionWithException;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +32,10 @@ import java.util.stream.Stream;
 @Slf4j
 public class AptService {
 
-    private  <T> Consumer<T> wrapper(FunctionWithException<Exception> fwe){
+    private  <T> Consumer<T> wrapper(FunctionWithException<T, Exception> fwe){
         return (x) -> {
             try {
-                fwe.accept();
+                fwe.accept(x);
             }catch(Exception e){
                 throw new RuntimeException(e);
             }
@@ -50,11 +51,10 @@ public class AptService {
                 .blockOptional()
                 .filter(x -> !x.equals(""))
                 .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x -> {
+                .map(x ->  {
 
                     LaborManage labor = new LaborManage();
                     ObjectMapper mapper = new ObjectMapper();
-
                     Map<String, Object> convert = mapper.convertValue(x, Map.class);
 
                     try {
@@ -68,28 +68,36 @@ public class AptService {
                     return labor;
                 });
 
-                //});
-                //.map(x -> Mono.)
-//                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-//                .map(x ->  {
-//
-//                    LaborManage labor = new LaborManage();
-//                    ObjectMapper mapper = new ObjectMapper();
-//
-//                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-//
-//                    try {
-//                        org.apache.commons.beanutils.BeanUtils.populate(labor, convert);
-//                    } catch (IllegalAccessException e) {
-//                        e.printStackTrace();
-//                    } catch (InvocationTargetException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    return labor;
-//                });
-
         return CompletableFuture.completedFuture(laborManage.orElse(new LaborManage()));
+    }
+
+    @Async
+    public CompletableFuture<Cmnuse> getCmnuse(ClientResponse clientResponse){
+
+        Optional<Cmnuse> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x ->  {
+
+                    Cmnuse cmn = new Cmnuse();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(cmn, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return cmn;
+                });
+
+        return CompletableFuture.completedFuture(optional.orElse(new Cmnuse()));
     }
 
     public static void main(String[] args){

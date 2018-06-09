@@ -1,5 +1,6 @@
 package com.hj.aptmanage;
 
+import com.hj.aptmanage.entity.Cmnuse;
 import com.hj.aptmanage.entity.LaborManage;
 import com.hj.aptmanage.service.AptService;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class AptManageApplication {
 
     private final String APT_LIST_URI = "http://apis.data.go.kr/1611000/AptListService/getRoadnameAptList";
     private final String PUBLIC_COST_LABOR_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpLaborCostInfo";
+    private final String PUBLIC_COST_CMNUSE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpOfcrkCostInfo";
 //    @Value("${public.aptList.apiKey}")
 //    private String APT_LIST_KEY;
 
@@ -66,8 +68,29 @@ public class AptManageApplication {
         return map;
     }
 
+    @GetMapping("/apt/cost/cmnuse/{aptCode}")
+    public Mono<Cmnuse> getCmnuseCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_CMNUSE_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getCmnuse(x)));
+
+    }
+
     @GetMapping("/apt/cost/labor/{aptCode}")
-    public Mono<LaborManage> getAptPublicCost(@PathVariable String aptCode, String date){
+    public Mono<LaborManage> getAptLaborCost(@PathVariable String aptCode, String date){
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
 

@@ -1,6 +1,6 @@
 package com.hj.aptmanage.exception;
 
 @FunctionalInterface
-public interface FunctionWithException<E extends Exception> {
-    void accept() throws E;
+public interface FunctionWithException<T, E extends Exception> {
+    void accept(T t) throws E;
 }

@@ -3,6 +3,7 @@ package com.hj.aptmanage.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hj.aptmanage.entity.Cmnuse;
 import com.hj.aptmanage.entity.LaborManage;
+import com.hj.aptmanage.entity.Tax;
 import com.hj.aptmanage.exception.FunctionWithException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -98,6 +99,35 @@ public class AptService {
                 });
 
         return CompletableFuture.completedFuture(optional.orElse(new Cmnuse()));
+    }
+
+    @Async
+    public CompletableFuture<Tax> getTax(ClientResponse clientResponse){
+
+        Optional<Tax> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x ->  {
+
+                    Tax tax = new Tax();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(tax, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return tax;
+                });
+
+        return CompletableFuture.completedFuture(optional.orElse(new Tax()));
     }
 
     public static void main(String[] args){

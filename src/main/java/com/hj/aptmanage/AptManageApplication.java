@@ -38,6 +38,9 @@ public class AptManageApplication {
     private final String PUBLIC_COST_VEHICLE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpVhcleMntncCostInfo";
     private final String PUBLIC_COST_ETC_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEtcCostInfo";
     private final String PUBLIC_COST_CLEANING_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpCleaningCostInfo";
+    private final String PUBLIC_COST_GUARD_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpGuardCostInfo";
+    private final String PUBLIC_COST_DISINFECTION_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpDisinfectionCostInfo";
+
 //    @Value("${public.aptList.apiKey}")
 //    private String APT_LIST_KEY;
 
@@ -71,6 +74,48 @@ public class AptManageApplication {
                 //.flatMap(x -> webClient.get().uri())
 
         return map;
+    }
+
+    @GetMapping("/apt/cost/disinfection/{aptCode}")
+    public Mono<Disinfection> getDisinfectionCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_DISINFECTION_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getDisinfection(x)));
+
+    }
+
+    @GetMapping("/apt/cost/guard/{aptCode}")
+    public Mono<Guard> getGuardCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_GUARD_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getGuard(x)));
+
     }
 
     @GetMapping("/apt/cost/cleaning/{aptCode}")

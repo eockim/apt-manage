@@ -32,6 +32,64 @@ public class AptService {
     }
 
     @Async
+    public CompletableFuture<Guard> getGuard(ClientResponse clientResponse) {
+
+
+        Optional<Guard> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x -> {
+
+                    Guard guard = new Guard();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(guard, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return guard;
+                });
+        return CompletableFuture.completedFuture(optional.orElse(new Guard()));
+    }
+
+    @Async
+    public CompletableFuture<Disinfection> getDisinfection(ClientResponse clientResponse) {
+
+
+        Optional<Disinfection> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x -> {
+
+                    Disinfection disinfection = new Disinfection();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(disinfection, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return disinfection;
+                });
+        return CompletableFuture.completedFuture(optional.orElse(new Disinfection()));
+    }
+
+    @Async
     public CompletableFuture<Cleaning> getCleaning(ClientResponse clientResponse) {
 
         Optional<Cleaning> optional = clientResponse.bodyToMono(HashMap.class)

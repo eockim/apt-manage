@@ -1,33 +1,20 @@
 package com.hj.aptmanage.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hj.aptmanage.entity.Cloth;
-import com.hj.aptmanage.entity.Cmnuse;
-import com.hj.aptmanage.entity.LaborManage;
-import com.hj.aptmanage.entity.Tax;
+import com.hj.aptmanage.entity.*;
 import com.hj.aptmanage.exception.FunctionWithException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtilsBean;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ClientResponse;
-import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @EnableAsync
@@ -100,6 +87,35 @@ public class AptService {
                 });
 
         return CompletableFuture.completedFuture(optional.orElse(new Cloth()));
+    }
+
+    @Async
+    public CompletableFuture<Edu> getEdu(ClientResponse clientResponse){
+
+        Optional<Edu> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x ->  {
+
+                    Edu edu = new Edu();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(edu, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return edu;
+                });
+
+        return CompletableFuture.completedFuture(optional.orElse(new Edu() ));
     }
 
     @Async

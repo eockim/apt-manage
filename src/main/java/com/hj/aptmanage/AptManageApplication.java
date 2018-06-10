@@ -36,6 +36,7 @@ public class AptManageApplication {
     private final String PUBLIC_COST_CMNUSE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpOfcrkCostInfo";
     private final String PUBLIC_COST_TAX_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpTaxdueInfo";
     private final String PUBLIC_COST_CLOTH_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpClothingCostInfo";
+    private final String PUBLIC_COST_EDU_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEduTraingCostInfo";
 //    @Value("${public.aptList.apiKey}")
 //    private String APT_LIST_KEY;
 
@@ -71,6 +72,27 @@ public class AptManageApplication {
         return map;
     }
 
+    @GetMapping("/apt/cost/edu/{aptCode}")
+    public Mono<Cloth> getEduCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_EDU_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getCloth(x)));
+
+    }
+
     @GetMapping("/apt/cost/cloth/{aptCode}")
     public Mono<Cloth> geClothCost(@PathVariable String aptCode, String date){
 
@@ -85,7 +107,7 @@ public class AptManageApplication {
         log.info("year month {}", date);
 
         return webClient.get()
-                .uri(URI.create(PUBLIC_COST_TAX_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .uri(URI.create(PUBLIC_COST_CLOTH_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .flatMap(x -> Mono.fromCompletionStage(aptService.getCloth(x)));

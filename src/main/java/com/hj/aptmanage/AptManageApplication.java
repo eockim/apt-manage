@@ -36,6 +36,7 @@ public class AptManageApplication {
     private final String PUBLIC_COST_CLOTH_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpClothingCostInfo";
     private final String PUBLIC_COST_EDU_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEduTraingCostInfo";
     private final String PUBLIC_COST_VEHICLE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpVhcleMntncCostInfo";
+    private final String PUBLIC_COST_ETC_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEtcCostInfo";
 //    @Value("${public.aptList.apiKey}")
 //    private String APT_LIST_KEY;
 
@@ -71,6 +72,27 @@ public class AptManageApplication {
         return map;
     }
 
+    @GetMapping("/apt/cost/etc/{aptCode}")
+    public Mono<Etc> getEtcCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_ETC_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getEtc(x)));
+
+    }
+
     @GetMapping("/apt/cost/vehicle/{aptCode}")
     public Mono<Vehicle> getVehicleCost(@PathVariable String aptCode, String date){
 
@@ -85,7 +107,7 @@ public class AptManageApplication {
         log.info("year month {}", date);
 
         return webClient.get()
-                .uri(URI.create(PUBLIC_COST_EDU_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .uri(URI.create(PUBLIC_COST_VEHICLE_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .flatMap(x -> Mono.fromCompletionStage(aptService.getVehicle(x)));

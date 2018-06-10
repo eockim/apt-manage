@@ -32,6 +32,35 @@ public class AptService {
     }
 
     @Async
+    public CompletableFuture<Etc> getEtc(ClientResponse clientResponse){
+
+        Optional<Etc> laborManage = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x ->  {
+
+                    Etc etc = new Etc();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(etc, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return etc;
+                });
+
+        return CompletableFuture.completedFuture(laborManage.orElse(new Etc()));
+    }
+
+    @Async
     public CompletableFuture<LaborManage> getLabor(ClientResponse clientResponse){
 
         Optional<LaborManage> laborManage = clientResponse.bodyToMono(HashMap.class)

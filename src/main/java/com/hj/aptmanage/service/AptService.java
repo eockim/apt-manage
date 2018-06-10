@@ -32,9 +32,37 @@ public class AptService {
     }
 
     @Async
+    public CompletableFuture<Cleaning> getCleaning(ClientResponse clientResponse) {
+
+        Optional<Cleaning> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x -> {
+
+                    Cleaning cleaning = new Cleaning();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(cleaning, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return cleaning;
+                });
+        return CompletableFuture.completedFuture(optional.orElse(new Cleaning()));
+    }
+
+    @Async
     public CompletableFuture<Etc> getEtc(ClientResponse clientResponse){
 
-        Optional<Etc> laborManage = clientResponse.bodyToMono(HashMap.class)
+        Optional<Etc> optional = clientResponse.bodyToMono(HashMap.class)
                 .map(x -> x.get("response"))
                 .map(x -> ((HashMap<String, Object>) (x)).get("body"))
                 .blockOptional()
@@ -57,13 +85,13 @@ public class AptService {
                     return etc;
                 });
 
-        return CompletableFuture.completedFuture(laborManage.orElse(new Etc()));
+        return CompletableFuture.completedFuture(optional.orElse(new Etc()));
     }
 
     @Async
     public CompletableFuture<LaborManage> getLabor(ClientResponse clientResponse){
 
-        Optional<LaborManage> laborManage = clientResponse.bodyToMono(HashMap.class)
+        Optional<LaborManage> optional = clientResponse.bodyToMono(HashMap.class)
                 .map(x -> x.get("response"))
                 .map(x -> ((HashMap<String, Object>) (x)).get("body"))
                 .blockOptional()
@@ -86,7 +114,7 @@ public class AptService {
                     return labor;
                 });
 
-        return CompletableFuture.completedFuture(laborManage.orElse(new LaborManage()));
+        return CompletableFuture.completedFuture(optional.orElse(new LaborManage()));
     }
 
     @Async

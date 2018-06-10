@@ -37,6 +37,7 @@ public class AptManageApplication {
     private final String PUBLIC_COST_EDU_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEduTraingCostInfo";
     private final String PUBLIC_COST_VEHICLE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpVhcleMntncCostInfo";
     private final String PUBLIC_COST_ETC_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEtcCostInfo";
+    private final String PUBLIC_COST_CLEANING_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpCleaningCostInfo";
 //    @Value("${public.aptList.apiKey}")
 //    private String APT_LIST_KEY;
 
@@ -70,6 +71,27 @@ public class AptManageApplication {
                 //.flatMap(x -> webClient.get().uri())
 
         return map;
+    }
+
+    @GetMapping("/apt/cost/cleaning/{aptCode}")
+    public Mono<Cleaning> getCleaningCost(@PathVariable String aptCode, String date){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_CLEANING_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.getCleaning(x)));
+
     }
 
     @GetMapping("/apt/cost/etc/{aptCode}")

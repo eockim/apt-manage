@@ -61,6 +61,35 @@ public class AptService {
     }
 
     @Async
+    public CompletableFuture<Vehicle> getVehicle(ClientResponse clientResponse){
+
+        Optional<Vehicle> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x ->  {
+
+                    Vehicle vehicle = new Vehicle();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(vehicle, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return vehicle;
+                });
+
+        return CompletableFuture.completedFuture(optional.orElse(new Vehicle()));
+    }
+
+    @Async
     public CompletableFuture<Cloth> getCloth(ClientResponse clientResponse){
 
         Optional<Cloth> optional = clientResponse.bodyToMono(HashMap.class)

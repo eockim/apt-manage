@@ -32,10 +32,9 @@ public class AptService {
     }
 
     @Async
-    public CompletableFuture<Guard> getGuard(ClientResponse clientResponse) {
+    public <T> CompletableFuture<T> costCompletableFuture(ClientResponse clientResponse, T t) {
 
-
-        Optional<Guard> optional = clientResponse.bodyToMono(HashMap.class)
+        Optional<T> optional = clientResponse.bodyToMono(HashMap.class)
                 .map(x -> x.get("response"))
                 .map(x -> ((HashMap<String, Object>) (x)).get("body"))
                 .blockOptional()
@@ -43,282 +42,23 @@ public class AptService {
                 .map(x -> ((HashMap<String, Object>) (x)).get("item"))
                 .map(x -> {
 
-                    Guard guard = new Guard();
+                    //T t = null;
                     ObjectMapper mapper = new ObjectMapper();
                     Map<String, Object> convert = mapper.convertValue(x, Map.class);
 
                     try {
-                        org.apache.commons.beanutils.BeanUtils.populate(guard, convert);
+                        org.apache.commons.beanutils.BeanUtils.populate(t, convert);
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     } catch (InvocationTargetException e) {
                         e.printStackTrace();
                     }
 
-                    return guard;
+                    return t;
                 });
-        return CompletableFuture.completedFuture(optional.orElse(new Guard()));
+        return CompletableFuture.completedFuture(optional.orElse(t));
     }
 
-    @Async
-    public CompletableFuture<Disinfection> getDisinfection(ClientResponse clientResponse) {
-
-
-        Optional<Disinfection> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x -> {
-
-                    Disinfection disinfection = new Disinfection();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(disinfection, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return disinfection;
-                });
-        return CompletableFuture.completedFuture(optional.orElse(new Disinfection()));
-    }
-
-    @Async
-    public CompletableFuture<Cleaning> getCleaning(ClientResponse clientResponse) {
-
-        Optional<Cleaning> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x -> {
-
-                    Cleaning cleaning = new Cleaning();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(cleaning, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return cleaning;
-                });
-        return CompletableFuture.completedFuture(optional.orElse(new Cleaning()));
-    }
-
-    @Async
-    public CompletableFuture<Etc> getEtc(ClientResponse clientResponse){
-
-        Optional<Etc> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x ->  {
-
-                    Etc etc = new Etc();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(etc, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return etc;
-                });
-
-        return CompletableFuture.completedFuture(optional.orElse(new Etc()));
-    }
-
-    @Async
-    public CompletableFuture<LaborManage> getLabor(ClientResponse clientResponse){
-
-        Optional<LaborManage> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x ->  {
-
-                    LaborManage labor = new LaborManage();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(labor, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return labor;
-                });
-
-        return CompletableFuture.completedFuture(optional.orElse(new LaborManage()));
-    }
-
-    @Async
-    public CompletableFuture<Vehicle> getVehicle(ClientResponse clientResponse){
-
-        Optional<Vehicle> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x ->  {
-
-                    Vehicle vehicle = new Vehicle();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(vehicle, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return vehicle;
-                });
-
-        return CompletableFuture.completedFuture(optional.orElse(new Vehicle()));
-    }
-
-    @Async
-    public CompletableFuture<Cloth> getCloth(ClientResponse clientResponse){
-
-        Optional<Cloth> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x ->  {
-
-                    Cloth cloth = new Cloth();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(cloth, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return cloth;
-                });
-
-        return CompletableFuture.completedFuture(optional.orElse(new Cloth()));
-    }
-
-    @Async
-    public CompletableFuture<Edu> getEdu(ClientResponse clientResponse){
-
-        Optional<Edu> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x ->  {
-
-                    Edu edu = new Edu();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(edu, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return edu;
-                });
-
-        return CompletableFuture.completedFuture(optional.orElse(new Edu() ));
-    }
-
-    @Async
-    public CompletableFuture<Cmnuse> getCmnuse(ClientResponse clientResponse){
-
-        Optional<Cmnuse> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x ->  {
-
-                    Cmnuse cmn = new Cmnuse();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(cmn, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return cmn;
-                });
-
-        return CompletableFuture.completedFuture(optional.orElse(new Cmnuse()));
-    }
-
-    @Async
-    public CompletableFuture<Tax> getTax(ClientResponse clientResponse){
-
-        Optional<Tax> optional = clientResponse.bodyToMono(HashMap.class)
-                .map(x -> x.get("response"))
-                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
-                .blockOptional()
-                .filter(x -> !x.equals(""))
-                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
-                .map(x ->  {
-
-                    Tax tax = new Tax();
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
-
-                    try {
-                        org.apache.commons.beanutils.BeanUtils.populate(tax, convert);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    return tax;
-                });
-
-        return CompletableFuture.completedFuture(optional.orElse(new Tax()));
-    }
 
     public static void main(String[] args){
         LaborManage labor = new LaborManage();

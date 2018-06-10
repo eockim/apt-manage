@@ -30,19 +30,17 @@ import java.util.Optional;
 public class AptManageApplication {
 
     private final String APT_LIST_URI = "http://apis.data.go.kr/1611000/AptListService/getRoadnameAptList";
-    private final String PUBLIC_COST_LABOR_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpLaborCostInfo";
-    private final String PUBLIC_COST_CMNUSE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpOfcrkCostInfo";
-    private final String PUBLIC_COST_TAX_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpTaxdueInfo";
-    private final String PUBLIC_COST_CLOTH_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpClothingCostInfo";
-    private final String PUBLIC_COST_EDU_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEduTraingCostInfo";
-    private final String PUBLIC_COST_VEHICLE_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpVhcleMntncCostInfo";
-    private final String PUBLIC_COST_ETC_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpEtcCostInfo";
-    private final String PUBLIC_COST_CLEANING_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpCleaningCostInfo";
-    private final String PUBLIC_COST_GUARD_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpGuardCostInfo";
-    private final String PUBLIC_COST_DISINFECTION_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/getHsmpDisinfectionCostInfo";
-
-//    @Value("${public.aptList.apiKey}")
-//    private String APT_LIST_KEY;
+    private final String PUBLIC_COST_URI = "http://apis.data.go.kr/1611000/AptCmnuseManageCostService/";
+    private final String PUBLIC_COST_LABOR_URI = "getHsmpLaborCostInfo";
+    private final String PUBLIC_COST_CMNUSE_URI = "getHsmpOfcrkCostInfo";
+    private final String PUBLIC_COST_TAX_URI = "getHsmpTaxdueInfo";
+    private final String PUBLIC_COST_CLOTH_URI = "getHsmpClothingCostInfo";
+    private final String PUBLIC_COST_EDU_URI = "getHsmpEduTraingCostInfo";
+    private final String PUBLIC_COST_VEHICLE_URI = "getHsmpVhcleMntncCostInfo";
+    private final String PUBLIC_COST_ETC_URI = "getHsmpEtcCostInfo";
+    private final String PUBLIC_COST_CLEANING_URI = "getHsmpCleaningCostInfo";
+    private final String PUBLIC_COST_GUARD_URI = "getHsmpGuardCostInfo";
+    private final String PUBLIC_COST_DISINFECTION_URI = "getHsmpDisinfectionCostInfo";
 
     @Autowired
     ApiProperty apiProperty;
@@ -54,6 +52,25 @@ public class AptManageApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(AptManageApplication.class, args);
+    }
+
+    private <T> Mono<T> getCostMono(String uri, String aptCode, String date, T t) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+
+        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
+
+        Optional.<String>ofNullable(date)
+                .filter(x -> !x.equals(""))
+                .orElseGet(() -> formatter.format(YearMonth.now()));
+
+        log.info("year month {}", date);
+
+        return webClient.get()
+                .uri(URI.create(PUBLIC_COST_URI + uri + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(x -> Mono.fromCompletionStage(aptService.costCompletableFuture(x, t)));
     }
 
     @GetMapping("/apt/{loadCode}")
@@ -79,210 +96,70 @@ public class AptManageApplication {
     @GetMapping("/apt/cost/disinfection/{aptCode}")
     public Mono<Disinfection> getDisinfectionCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_DISINFECTION_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getDisinfection(x)));
+        return getCostMono(PUBLIC_COST_DISINFECTION_URI, aptCode, date, new Disinfection());
 
     }
+
 
     @GetMapping("/apt/cost/guard/{aptCode}")
     public Mono<Guard> getGuardCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_GUARD_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getGuard(x)));
+        return getCostMono(PUBLIC_COST_GUARD_URI, aptCode, date, new Guard());
 
     }
 
     @GetMapping("/apt/cost/cleaning/{aptCode}")
     public Mono<Cleaning> getCleaningCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_CLEANING_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getCleaning(x)));
-
+        return getCostMono(PUBLIC_COST_CLEANING_URI, aptCode, date, new Cleaning());
     }
 
     @GetMapping("/apt/cost/etc/{aptCode}")
     public Mono<Etc> getEtcCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_ETC_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getEtc(x)));
+        return getCostMono(PUBLIC_COST_ETC_URI, aptCode, date, new Etc());
 
     }
 
     @GetMapping("/apt/cost/vehicle/{aptCode}")
     public Mono<Vehicle> getVehicleCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_VEHICLE_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getVehicle(x)));
+        return getCostMono(PUBLIC_COST_VEHICLE_URI, aptCode, date, new Vehicle());
 
     }
 
     @GetMapping("/apt/cost/edu/{aptCode}")
     public Mono<Edu> getEduCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_EDU_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getEdu(x)));
+        return getCostMono(PUBLIC_COST_EDU_URI, aptCode, date, new Edu());
 
     }
 
     @GetMapping("/apt/cost/cloth/{aptCode}")
     public Mono<Cloth> geClothCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_CLOTH_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getCloth(x)));
+        return getCostMono(PUBLIC_COST_CLOTH_URI, aptCode, date, new Cloth());
 
     }
 
     @GetMapping("/apt/cost/tax/{aptCode}")
-    public Mono<Cmnuse> getTaxCost(@PathVariable String aptCode, String date){
+    public Mono<Tax> getTaxCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_TAX_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getCmnuse(x)));
+        return getCostMono(PUBLIC_COST_TAX_URI, aptCode, date, new Tax());
 
     }
 
     @GetMapping("/apt/cost/cmnuse/{aptCode}")
     public Mono<Cmnuse> getCmnuseCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_CMNUSE_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getCmnuse(x)));
+        return getCostMono(PUBLIC_COST_CMNUSE_URI, aptCode, date, new Cmnuse());
 
     }
 
     @GetMapping("/apt/cost/labor/{aptCode}")
     public Mono<LaborManage> getAptLaborCost(@PathVariable String aptCode, String date){
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-
-        log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
-
-        Optional.<String>ofNullable(date)
-                .filter(x -> !x.equals(""))
-                .orElseGet(() -> formatter.format(YearMonth.now()));
-
-        log.info("year month {}", date);
-
-        return webClient.get()
-                .uri(URI.create(PUBLIC_COST_LABOR_URI + "?serviceKey=" + apiProperty.getPublicCostKey() + "&kaptCode=" + aptCode + "&searchDate=" + date))
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .flatMap(x -> Mono.fromCompletionStage(aptService.getLabor(x)));
+        return getCostMono(PUBLIC_COST_LABOR_URI, aptCode, date, new LaborManage());
     }
 
     @GetMapping("/apt/test/{aptCode}")

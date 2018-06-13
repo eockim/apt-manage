@@ -32,6 +32,34 @@ public class AptService {
     }
 
     @Async
+    public <T> T cost(ClientResponse clientResponse, T t) {
+
+        Optional<T> optional = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                .blockOptional()
+                .filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x -> {
+
+                    //T t = null;
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> convert = mapper.convertValue(x, Map.class);
+
+                    try {
+                        org.apache.commons.beanutils.BeanUtils.populate(t, convert);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    return t;
+                });
+        return optional.orElse(t);
+    }
+
+    @Async
     public <T> CompletableFuture<T> costCompletableFuture(ClientResponse clientResponse, T t) {
 
         Optional<T> optional = clientResponse.bodyToMono(HashMap.class)

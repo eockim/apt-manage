@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -85,6 +86,23 @@ public class AptService {
                     return t;
                 });
         return CompletableFuture.completedFuture(optional.orElse(t));
+    }
+
+    @Async
+    public Mono<String> getAptHo(ClientResponse clientResponse) {
+
+        Mono<String> obj = clientResponse.bodyToMono(HashMap.class)
+                .map(x -> x.get("response"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("body"))
+                //.blockOptional()
+                //.filter(x -> !x.equals(""))
+                .map(x -> ((HashMap<String, Object>) (x)).get("item"))
+                .map(x -> ((HashMap<String, Object>) (x)).get("hoCnt"))
+                .map(x -> x.toString());
+
+        log.info("get apt ho ####### {} ");
+
+        return obj;
     }
 
 

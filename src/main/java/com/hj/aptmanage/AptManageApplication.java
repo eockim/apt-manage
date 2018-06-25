@@ -80,12 +80,6 @@ public class AptManageApplication {
 
     public WebClient.RequestHeadersSpec<?> getCostRequest(String uri, String aptCode, String date){
 
-        try {
-            Thread.sleep(1 * 1000L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
 
         log.info("getPublicCostKey {}", apiProperty.getPublicCostKey());
@@ -196,13 +190,13 @@ public class AptManageApplication {
              .flatMap(x -> Mono.fromCompletionStage(aptService.costCompletableFuture(x, new LaborManage())));
     }
 
-    @GetMapping("/apt/test/{aptCode}")
-    public Mono<String> getAptPublicCostTest(@PathVariable String aptCode, String date) throws ExecutionException, InterruptedException {
+    @GetMapping("/apt/cost/{aptCode}")
+    public Mono<Long> getAptPublicCostTest(@PathVariable String aptCode, String date) throws ExecutionException, InterruptedException {
 
         AtomicLong totalCost = new AtomicLong(0L);
 
         log.info("ho url {} ", "http://apis.data.go.kr/1611000/AptBasisInfoService/getAphusBassInfo?kaptCode=" + aptCode + "?serviceKey=" + apiProperty.getPublicCostKey());
-        Mono<String> ho = webClient.get()
+        Mono<Long> ho = webClient.get()
                 .uri(URI.create("http://apis.data.go.kr/1611000/AptBasisInfoService/getAphusBassInfo?kaptCode=" + aptCode + "&serviceKey=" + apiProperty.getPublicCostKey()))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
@@ -214,7 +208,7 @@ public class AptManageApplication {
                 .map(x -> x.get("item"))
                 .map(x -> (HashMap<String, Object>) x)
                 .map(x -> x.get("hoCnt"))
-                .map(x -> x.toString());
+                .map(x -> Long.parseLong(x.toString()));
                         //.map(s2 -> ((HashMap<String, Object>) (s2).get("body"))
                         //.blockOptional()
                         //.filter(x -> !x.equals(""))
@@ -231,24 +225,17 @@ public class AptManageApplication {
 
         Mono<Long> cost2 = getCostMono(PUBLIC_COST_DISINFECTION_URI, aptCode, date)
                 .flatMap(c -> {
-                    try {
-                        log.info("Current thread cost 2 {} ", Thread.currentThread());
-                        Thread.sleep(2 * 1000L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+
+                    log.info("Current thread cost 2 {} ", Thread.currentThread());
+
                     return Mono.fromCompletionStage(aptService.costCompletableFuture(c, new Disinfection()));
                 })
                 .map(x -> x.getTotal());
 
         Mono<Long> cost3 = getCostMono(PUBLIC_COST_GUARD_URI, aptCode, date)
                 .flatMap(c -> {
-                    try {
-                        log.info("Current thread cost 3 {} ", Thread.currentThread());
-                        Thread.sleep(3 * 1000L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+
+                    log.info("Current thread cost 3 {} ", Thread.currentThread());
                     return Mono.fromCompletionStage(aptService.costCompletableFuture(c, new Guard()));
                 })
                 .map(x -> x.getTotal());
@@ -288,7 +275,7 @@ public class AptManageApplication {
         //Mono.zip(Arrays.asList(cost1, cost2, cost3), x -> x. )
         Mono<Long> result2 = cost1
                 .flatMap(x -> {
-                    log.info("Current thread 2{} ", Thread.currentThread());
+                    log.info("Current thread 2{}, {} ", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost2;
                 })
@@ -296,39 +283,38 @@ public class AptManageApplication {
                     totalCost.getAndAdd(x);
                     return cost3;
                 }).flatMap(x ->  {
-                    log.info("Current thread 4{} ", Thread.currentThread());
+                    log.info("Current thread 4{}, {} ", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost4;
                 }).flatMap(x ->  {
-                    log.info("Current thread 5{} ", Thread.currentThread());
+                    log.info("Current thread 5{}, {} ", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost5;
                 }).flatMap(x ->  {
-                    log.info("Current thread 6{} ", Thread.currentThread());
+                    log.info("Current thread 6{} {}", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost6;
                 }).flatMap(x ->  {
-                    log.info("Current thread 7{} ", Thread.currentThread());
+                    log.info("Current thread 7{} {}", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost7;
                 }).flatMap(x ->  {
-                    log.info("Current thread 8{} ", Thread.currentThread());
+                    log.info("Current thread 8{} {}", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost8;
                 }).flatMap(x ->  {
-                    log.info("Current thread 9{} ", Thread.currentThread());
+                    log.info("Current thread 9{} {}", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost9;
                 }).flatMap(x ->  {
-                    log.info("Current thread 10{} ", Thread.currentThread());
+                    log.info("Current thread 10{} {}", Thread.currentThread(), x);
                     totalCost.getAndAdd(x);
                     return cost10;
+                })
+                .map(x -> {
+                    totalCost.getAndAdd(x);
+                    return totalCost.longValue();
                 });
-//                .flatMap(x -> {
-//                    totalCost.getAndAdd(x);
-//                    return ho;
-//                });
-//                .map(x -> totalCost.longValue()/x);
 
 
 
@@ -351,8 +337,13 @@ public class AptManageApplication {
 
         //List<CompletableFuture<?>> completableFutures = Arrays.asList(cf1, cf2);
 
-        List<Mono<Long>> monos = Arrays.asList(cost1, cost2, cost3, cost4, cost5, cost6, cost7, cost8, cost9, cost10);
 
+        Mono<Long> cost = Mono.zip(ho, result2)
+                .map(x ->{
+                        log.info("getT2 {} ", x.getT2());
+                        log.info("getT1 {} ", x.getT1());
+                        return x.getT2() / x.getT1();
+                });
 //        monos.stream()
 //                .parallel()
 //                .
@@ -390,7 +381,7 @@ public class AptManageApplication {
 //                }
 //        )
 
-        return ho;
+        return cost;
 
     }
 }
